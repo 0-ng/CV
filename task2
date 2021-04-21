@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import math
@@ -273,8 +275,9 @@ class Perspective_transform():
         # Warp the blank back to original image space using inverse perspective matrix (Minv)
         newwarp = cv2.warpPerspective(color_warp, Minv, (undist.shape[1], undist.shape[0]))
         # Combine the result with the original image
-        result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
-        return result
+        # result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
+        # return result
+        return newwarp
 
     def run(self):
         t = Thresholding()
@@ -296,12 +299,12 @@ class Perspective_transform():
             # thresholded_wraped = cv2.warpPerspective(frame, M, frame.shape[1::-1], flags=cv2.INTER_LINEAR)
             left_fit, right_fit, left_lane_inds, right_lane_inds = self.find_line(thresholded_wraped)
 
-            result =  self.draw_area(undist, thresholded_wraped, Minv, left_fit, right_fit)
+            result = self.draw_area(undist, thresholded_wraped, Minv, left_fit, right_fit)
 
-            cv2.imshow('frame', result)
+            cv2.imshow('frame', frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
-            break
+            # break
 
         cap.release()
 
@@ -334,14 +337,25 @@ def cal_undistort(img, objpoints, imgpoints):
     dst = cv2.undistort(img, mtx, dist, None, mtx)
     return dst
 
-object_points,img_points = calibrate(cal_imgs,grid=(9,6))
+
+def get_images_by_dir(dirname):
+    img_names = os.listdir(dirname)
+    img_paths = [dirname+'/'+img_name for img_name in img_names]
+    imgs = [cv2.imread(path) for path in img_paths]
+    return imgs
+
+
+cal_imgs = get_images_by_dir('camera_cal')
+object_points, img_points = calibrate(cal_imgs, grid=(9, 6))
 undist = cal_undistort(cal_imgs[0], object_points, img_points)
 
 
 if __name__ == '__main__':
-    # CV2()
+
+
+    CV2()
     # test()
 
-    now = Perspective_transform()
-    now.run()
+    # now = Perspective_transform()
+    # now.run()
 
